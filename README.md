@@ -63,17 +63,13 @@ type user struct {
 
 array join into string
 
-***define***
-
 ```go
 type JoinOptions struct {
-	Symbol  string // split string
+	Symbol  string // split string,default `,`
     express interface{} // express match func(ele TElement) string
 }
 Join(options JoinOptions) string
 ```
-
-***usage***
 
 ```
 arr := []int{1,2,3,4,5}
@@ -97,13 +93,9 @@ fmt.Println(str2) // 1|2|3|4|5
 
 array filter
 
-***define***
-
 ```go
 Filter(express interface{}) Array // express match func(ele TElement) bool
 ```
-
-***usage***
 
 ```go
 arr := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
@@ -124,13 +116,9 @@ fmt.Println(ret3) // [{Abraham 20} {Edith 25} {Anthony 26}]
 
 quick sort
 
-***define***
-
 ```go
 Sort(express interface{}) Array // express match func(e1, e2 TElement) bool
 ```
-
-***usage***
 
 ```go
 arr := []int{1, 3, 8, 6, 12, 5, 9}
@@ -166,13 +154,9 @@ usage like Sort
 
 .map to new array 
 
-***define***
-
 ```go
 Map(express interface{}) Array // express match func(ele TElement) TOut
 ```
-
-***usage***
 
 ```go
 arr := LambdaArray([]int{1, 2, 3, 4, 5})
@@ -189,13 +173,9 @@ fmt.Println(users) // [{un:1 1} {un:2 2} {un:3 3} {un:4 4} {un:5 5}]
 
 .append element
 
-***define***
-
 ```go
 Append(elements ...interface{}) Array // each of elements type must be TElmenent
 ```
-
-***usage***
 
 ```go
 arr := LambdaArray([]int{1, 2, 3})
@@ -209,13 +189,9 @@ fmt.Println(arr.Pointer().([]int)) // [1 2 3 4 5 6]
 
 .maximum element of array
 
-***define***
-
 ```go
 Max(express interface{}) interface{}
 ```
-
-***usage***
 
 ```go
 users := []user{
@@ -240,13 +216,9 @@ fmt.Println(ret) // 186
 
 .minimum element of array
 
-***define***
-
 ```go
 Min(express interface{}) interface{}
 ```
-
-***usage***
 
 ```go
 users := []user{
@@ -271,13 +243,9 @@ fmt.Println(ret) // 1
 
 .Determines whether the Array contains any elements
 
-***define***
-
 ```go
 Any(express interface{}) bool
 ```
-
-***usage***
 
 ```go
 us := []user{
@@ -297,13 +265,9 @@ fmt.Println(ret2) // false
 
 Determines whether the condition is satisfied for all elements in the Array
 
-***define***
-
 ```go
 All(express interface{}) bool
 ```
-
-***usage***
 
 ```go
 us := []user{
@@ -323,13 +287,9 @@ fmt.Println(ret2) // true
 
 Returns a number indicating how many elements in the specified Array satisfy the condition
 
-***define***
-
 ```go
 Count(express interface{}) int
 ```
-
-***usage***
 
 ```go
 us := []user{
@@ -351,13 +311,9 @@ fmt.Println(ret2) // 4
 
 Returns the first element of an Array that satisfies the condition
 
-***define***
-
 ```go
 First(express interface{}) (interface{}, error)
 ```
-
-***usage***
 
 ```go
 us := []user{
@@ -387,13 +343,9 @@ if u, err := arr.First(func(u user) bool { return u.name == "jack" }); err == ni
 
 Returns the last element of an Array that satisfies the condition
 
-***define***
-
 ```go
 Last(express interface{}) (interface{}, error)
 ```
-
-***usage***
 
 ```go
 us := []user{
@@ -424,13 +376,9 @@ if u, err := arr.Last(func(u user) bool { return u.age > 35 }); err == nil {
 
 Returns the zero based index of the first occurrence in an Array
 
-***define***
-
 ```go
 Index(i int) (interface{}, error)
 ```
-
-***usage***
 
 ```go
 if element, err := LambdaArray([]int{1, 2, 3, 4, 5}).Index(3); err == nil {
@@ -453,13 +401,9 @@ if element, err := LambdaArray([]int{1, 2, 3, 4, 5}).Index(10); err == nil {
 
 take `count` elements start by `skip`
 
-***define***
-
 ```go
 Take(skip, count int) Array
 ```
-
-***usage***
 
 ```go
 ret1 := LambdaArray([]int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}).Take(4, 10).Pointer().([]int)
@@ -474,13 +418,9 @@ fmt.Println(ret2) // []
 
 sum of the values returned by the expression
 
-***define***
-
 ```go
 Sum(express interface{}) interface{}
 ```
-
-***usage***
 
 ```go
 us := []user{
@@ -501,13 +441,9 @@ fmt.Println("total user age is ", arr.Sum(func(u user) int { return u.age }))
 
 average of the values returned by the expression
 
-***define***
-
 ```go
 Average(express interface{}) float64
 ```
-
-***usage***
 
 ```go
 us := []user{
@@ -528,13 +464,9 @@ fmt.Println("all user average age is", arr.Average(func(u user) int { return u.a
 
 Determines whether the array contains the specified element
 
-***define***
-
 ```go
 Contains(express interface{}) bool
 ```
-
-***usage***
 
 ```go
 us := []user{
@@ -554,8 +486,6 @@ fmt.Println(LambdaArray([]int{1, 2, 3, 4, 5, 6, 7, 8, 9}).Contains(0)) // false
 #### Pointer
 
 array or slice pointer
-
-***define***
 
 ```go
 Pointer() interface{}
