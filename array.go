@@ -11,7 +11,7 @@ import (
 // source support array or slice type
 func LambdaArray(source interface{}) Array {
 	t := reflect.TypeOf(source)
-	arr := _array{source, t, t.Elem(), reflect.ValueOf(source)}
+	arr := _obj{source, t, t.Elem(), reflect.ValueOf(source)}
 	if !arr.IsSlice() {
 		err := fmt.Errorf("source type is %s, not array ", arr.arrayType.Kind())
 		panic(err)
@@ -91,15 +91,17 @@ type Array interface {
 	// array or slice pointer
 	// Array.Pointer().([]T or [n]T)
 	Pointer() interface{}
+
+	ToList() IList
 }
 
 func innerLambdaArray(value reflect.Value) Array {
 	t := value.Type()
-	arr := _array{value, t, t.Elem(), value}
+	arr := _obj{value, t, t.Elem(), value}
 	return &arr
 }
 
-type _array struct {
+type _obj struct {
 
 	// source array
 	source interface{}
@@ -111,7 +113,11 @@ type _array struct {
 	value reflect.Value
 }
 
-func (p *_array) Contains(express interface{}) bool {
+func (p *_obj) ToList() IList {
+	return p
+}
+
+func (p *_obj) Contains(express interface{}) bool {
 	sz := p.Len()
 	if express == nil {
 		panic("express is null")
@@ -144,7 +150,7 @@ func (p *_array) Contains(express interface{}) bool {
 	return false
 }
 
-func (p *_array) Average(express interface{}) float64 {
+func (p *_obj) Average(express interface{}) float64 {
 	length := p.Len()
 	if length == 0 {
 		return float64(0)
@@ -179,7 +185,7 @@ func (p *_array) Average(express interface{}) float64 {
 	}
 }
 
-func (p *_array) Append(elements ...interface{}) Array {
+func (p *_obj) Append(elements ...interface{}) Array {
 	ret := LambdaArray(elements).Map(func(ele interface{}) reflect.Value {
 		if t := reflect.TypeOf(ele); t.Kind() != p.elementType.Kind() {
 			panic(fmt.Sprintf("element type[%s] is not %s.", t.String(), p.elementType.String()))
@@ -190,7 +196,7 @@ func (p *_array) Append(elements ...interface{}) Array {
 	return p
 }
 
-func (p *_array) Any(express interface{}) bool {
+func (p *_obj) Any(express interface{}) bool {
 	if express == nil {
 		return p.Len() > 0
 	}
@@ -209,7 +215,7 @@ func (p *_array) Any(express interface{}) bool {
 	return false
 }
 
-func (p *_array) All(express interface{}) bool {
+func (p *_obj) All(express interface{}) bool {
 	if express == nil {
 		return p.Len() > 0
 	}
@@ -231,7 +237,7 @@ func (p *_array) All(express interface{}) bool {
 	}
 }
 
-func (p *_array) Count(express interface{}) int {
+func (p *_obj) Count(express interface{}) int {
 	if express == nil {
 		return p.Len()
 	}
@@ -249,7 +255,7 @@ func (p *_array) Count(express interface{}) int {
 	return count
 }
 
-func (p *_array) Find(express interface{}, start, step int) (interface{}, error) {
+func (p *_obj) Find(express interface{}, start, step int) (interface{}, error) {
 	length := p.Len()
 	if length == 0 {
 		return nil, errors.New("empty array")
@@ -271,22 +277,22 @@ func (p *_array) Find(express interface{}, start, step int) (interface{}, error)
 	return nil, errors.New("not found")
 }
 
-func (p *_array) First(express interface{}) (interface{}, error) {
+func (p *_obj) First(express interface{}) (interface{}, error) {
 	return p.Find(express, 0, 1)
 }
 
-func (p *_array) Last(express interface{}) (interface{}, error) {
+func (p *_obj) Last(express interface{}) (interface{}, error) {
 	return p.Find(express, p.Len()-1, -1)
 }
 
-func (p *_array) Index(i int) (interface{}, error) {
+func (p *_obj) Index(i int) (interface{}, error) {
 	if i < p.Len() {
 		return p.value.Index(i), nil
 	}
 	return nil, errors.New(fmt.Sprintf("%d out of range", i))
 }
 
-func (p *_array) Take(skip, count int) Array {
+func (p *_obj) Take(skip, count int) Array {
 	length := p.value.Len()
 
 	ret := reflect.MakeSlice(p.arrayType, 0, 0)
@@ -302,7 +308,7 @@ func (p *_array) Take(skip, count int) Array {
 	return innerLambdaArray(ret)
 }
 
-func (p *_array) Sum(express interface{}) interface{} {
+func (p *_obj) Sum(express interface{}) interface{} {
 
 	var add Add
 	if express == nil {
@@ -336,15 +342,15 @@ func (p *_array) Sum(express interface{}) interface{} {
 	return add.Value()
 }
 
-func (p *_array) Pointer() interface{} {
+func (p *_obj) Pointer() interface{} {
 	return p.value.Interface()
 }
 
-func (p *_array) IsSlice() bool {
+func (p *_obj) IsSlice() bool {
 	return p.arrayType.Kind() == reflect.Slice || p.arrayType.Kind() == reflect.Array
 }
 
-func (p *_array) Len() int {
+func (p *_obj) Len() int {
 	return p.value.Len()
 }
 
@@ -395,7 +401,7 @@ func checkExpressRARTO(express interface{}, in []reflect.Type) reflect.Type {
 	return ot
 }
 
-func (p *_array) Map(express interface{}) Array {
+func (p *_obj) Map(express interface{}) Array {
 	in := []reflect.Type{p.elementType}
 	ot := checkExpressRARTO(express, in)
 
@@ -429,7 +435,7 @@ type JoinOptions struct {
 	express interface{}
 }
 
-func (p *_array) Join(option JoinOptions) string {
+func (p *_obj) Join(option JoinOptions) string {
 	if option.express != nil {
 		return p.Map(option.express).Join(JoinOptions{Symbol: option.Symbol})
 	}
@@ -451,7 +457,7 @@ func (p *_array) Join(option JoinOptions) string {
 	return build.String()
 }
 
-func (p *_array) Filter(express interface{}) Array {
+func (p *_obj) Filter(express interface{}) Array {
 	in := []reflect.Type{p.elementType}
 	ft := reflect.TypeOf(express)
 	ot := reflect.TypeOf(true)
@@ -471,7 +477,7 @@ func (p *_array) Filter(express interface{}) Array {
 	return innerLambdaArray(ret)
 }
 
-func (p *_array) SortByBubble(express interface{}) Array {
+func (p *_obj) SortByBubble(express interface{}) Array {
 	in := []reflect.Type{p.elementType, p.elementType}
 	ft := reflect.TypeOf(express)
 	ot := reflect.TypeOf(true)
@@ -497,7 +503,7 @@ func (p *_array) SortByBubble(express interface{}) Array {
 	return p
 }
 
-func (p *_array) CopyValue() reflect.Value {
+func (p *_obj) CopyValue() reflect.Value {
 	var arr reflect.Value
 	if p.IsSlice() {
 		arr = reflect.MakeSlice(reflect.SliceOf(p.elementType), p.Len(), p.Len())
@@ -508,7 +514,7 @@ func (p *_array) CopyValue() reflect.Value {
 	return arr
 }
 
-func (p *_array) Sort(express interface{}) Array {
+func (p *_obj) Sort(express interface{}) Array {
 	in := []reflect.Type{p.elementType, p.elementType}
 	ft := reflect.TypeOf(express)
 	ot := reflect.TypeOf(true)
@@ -557,7 +563,7 @@ func (p *_array) Sort(express interface{}) Array {
 	return p
 }
 
-func (p *_array) SortMT(express interface{}) Array {
+func (p *_obj) SortMT(express interface{}) Array {
 	in := []reflect.Type{p.elementType, p.elementType}
 	ft := reflect.TypeOf(express)
 	ot := reflect.TypeOf(true)
@@ -614,7 +620,7 @@ func (p *_array) SortMT(express interface{}) Array {
 	return innerLambdaArray(values)
 }
 
-func (p *_array) maxOrMin(express interface{}, isMax bool) interface{} {
+func (p *_obj) maxOrMin(express interface{}, isMax bool) interface{} {
 	if express != nil {
 		in := []reflect.Type{p.elementType}
 		ft := reflect.TypeOf(express)
@@ -658,15 +664,15 @@ func (p *_array) maxOrMin(express interface{}, isMax bool) interface{} {
 	return m.Interface()
 }
 
-func (p *_array) Max(express interface{}) interface{} {
+func (p *_obj) Max(express interface{}) interface{} {
 	return p.maxOrMin(express, true)
 }
 
-func (p *_array) Min(express interface{}) interface{} {
+func (p *_obj) Min(express interface{}) interface{} {
 	return p.maxOrMin(express, false)
 }
 
-func (p *_array) EachV(fn func(v reflect.Value, i int)) {
+func (p *_obj) EachV(fn func(v reflect.Value, i int)) {
 	if fn == nil {
 		return
 	}
